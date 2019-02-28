@@ -1,0 +1,199 @@
+:root {
+  --gutter-width: 15px;
+  --blob-height: 60px;
+  --light-color: #ddd;
+  --dark-color: #666;
+  --input-height: 50px;
+  --tab-width: 160px;
+  --total-width: calc(var(--tab-width) * 3);
+  --content-width: calc(var(--total-width) - 2*var(--gutter-width));
+  --num-key-width: calc((var(--content-width) - 2*var(--gutter-width)) / 3);
+  --bottom-key-width: calc((var(--content-width) - 1*var(--gutter-width)) / 2);
+  --label-width: 75px;
+  --field-width: calc(var(--content-width) - var(--gutter-width) - var(--label-width));
+  --font-size: 20px;
+  --small-font-size: 12px;
+  --tab-font-size: var(--small-font-size);
+  --small-sprite-size: 25px;
+  --large-sprite-size: var(--input-height);
+  --sprite-gutter-width: calc((var(--field-width) - 4*var(--large-sprite-size)) / 5);
+}
+
+* {
+  text-transform: lowercase;
+  font-family: 'Major Mono Display', monospace;
+}
+
+body {
+  margin: 0px;
+}
+
+#content {
+  padding: var(--gutter-width);
+}
+
+#tab-bar {
+  background-color: var(--light-color);
+}
+
+.blob {
+  background-color: var(--light-color);
+  text-align: center;
+  vertical-align: middle;
+  line-height: var(--blob-height);
+  font-size: var(--font-size);
+  border: none;
+}
+.blob:hover {
+  background-color: var(--dark-color);
+  color: white;
+}
+
+.offscreen {
+  width: 0px;
+  height: 0px;
+  position: absolute;
+  overflow: hidden;
+  top: -10px;
+}
+
+.tab {
+  width: var(--tab-width);
+  font-size: var(--tab-font-size);
+}
+.tab.active {
+  background: white;
+  color: black;
+}
+.tab.active:focus {
+  outline: 0;
+}
+.tab.active:hover {
+  background-color: white;
+  color: black;
+}
+
+.tab[content-id="content-help"] {
+  float: right;
+}
+
+#content-contact-list * {
+  text-align: left;
+  font-size: var(--font-size);
+}
+
+td {
+  padding-right: var(--gutter-width);
+}
+
+td[headers="nav accesskey"], td[headers="dial accesskey"] {
+  text-align: center;
+  border-left: 1px solid var(--dark-color);
+  text-transform: none;
+  font-family: sans-serif, monospace;
+}
+
+#content-help th {
+  padding: calc(var(--gutter-width)/2) var(--gutter-width);
+}
+
+.table-section-header {
+  text-align: center;
+}
+
+#content-help table {
+  border: 1px solid var(--dark-color);
+  border-collapse: collapse;
+  margin: var(--gutter-width) 0px;
+}
+
+
+#content-help th {
+  border: 1px solid var(--dark-color);
+  border-collapse: collapse;
+}
+
+#content-contact-list img {
+  width: var(--small-sprite-size);
+  height: var(--small-sprite-size);
+}
+
+label {
+  height: var(--input-height);
+  line-height: var(--input-height);
+  vertical-align: middle;
+}
+
+input {
+  height: var(--input-height);
+  font-size: var(--font-size);
+}
+
+#num-display {
+  margin: var(--gutter-width) 0px;
+  width: var(--content-width);
+}
+
+#num-blobs {
+  margin: var(--gutter-width) 0px;
+  display: grid;
+  grid-template-columns: var(--num-key-width) var(--num-key-width) var(--num-key-width);
+  grid-template-rows: var(--blob-height) var(--blob-height) var(--blob-height) var(--blob-height);
+  grid-gap: var(--gutter-width);
+}
+
+#num-blobs > .blob {
+  line-height: 50px;
+}
+
+#dial-blobs {
+  margin: var(--gutter-width) 0px;
+  display: grid;
+  grid-template-columns: var(--bottom-key-width) var(--bottom-key-width);
+  grid-template-rows: var(--blob-height);
+  grid-gap: var(--gutter-width);
+}
+
+#sprites {
+  display: grid;
+  grid-template-columns: var(--large-sprite-size) var(--large-sprite-size) var(--large-sprite-size) var(--large-sprite-size);
+  grid-template-rows: var(--blob-height);
+  grid-gap: var(--sprite-gutter-width);
+  padding: 0px var(--sprite-gutter-width);
+}
+
+#sprites [type=radio] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+#sprites [type=radio] + img {
+  cursor: pointer;
+  opacity: 0.25;
+}
+
+#sprites [type=radio]:checked + img {
+  opacity: 1;
+}
+
+#content-add-contact img {
+  width: var(--large-sprite-size);
+  height: var(--large-sprite-size);
+}
+
+#add-contact-fields {
+  display: grid;
+  grid-template-columns: var(--label-width) var(--field-width);
+  grid-template-rows: var(--blob-height) var(--blob-height) var(--blob-height);
+  grid-gap: var(--gutter-width);
+  margin-bottom: var(--gutter-width);
+}
+
+#add-contact-buttons {
+  display: grid;
+  grid-template-columns: var(--bottom-key-width) var(--bottom-key-width);
+  grid-template-rows: var(--blob-height);
+  grid-gap: var(--gutter-width);
+}

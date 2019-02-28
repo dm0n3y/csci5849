@@ -1,0 +1,187 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="phone.css">
+    <title>Your Page Title</title>
+    <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display" rel="stylesheet">
+  </head>
+  <body>
+    <div id="tab-bar" role="navigation">
+      <button class="tab blob" content-id="content-dialer" accesskey="d">
+        Dialer
+      </button><button class="tab blob" content-id="content-contact-list" accesskey="l">
+        Contact List
+      </button><button class="tab blob" content-id="content-add-contact" accesskey="a">
+        Add Contact
+      </button><button class="tab blob" content-id="content-help" accesskey="h">
+        Help
+      </button>
+    </div>
+    <div id="content" role="main">
+      <div id="content-dialer" aria-live="polite">
+        <input type="text" id="num-display" disabled/>
+        <div id="num-blobs">
+          <button class="blob" data-key="1" accesskey="1">1</button>
+          <button class="blob" data-key="2" accesskey="2">2</button>
+          <button class="blob" data-key="3" accesskey="3">3</button>
+          <button class="blob" data-key="4" accesskey="4">4</button>
+          <button class="blob" data-key="5" accesskey="5">5</button>
+          <button class="blob" data-key="6" accesskey="6">6</button>
+          <button class="blob" data-key="7" accesskey="7">7</button>
+          <button class="blob" data-key="8" accesskey="8">8</button>
+          <button class="blob" data-key="9" accesskey="9">9</button>
+          <button class="blob" data-key="*" accesskey="*">*</button>
+          <button class="blob" data-key="0" accesskey="0">0</button>
+          <button class="blob" data-key="#" accesskey="#">#</button>
+        </div>
+        <div id="dial-blobs">
+          <button class="blob" accesskey="D">Dial</button>
+          <button class="blob" accesskey="C">Clear</button>
+        </div>
+      </div>
+      <div id="content-contact-list" aria-live="polite">
+        <table>
+          <thead>
+            <tr>
+              <th><span class="offscreen">Sprite</span></th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+      <div id="content-add-contact" aria-live="polite">
+        <form id="add-contact">
+          <div id="add-contact-fields">
+            <label for="add-contact-name">Name</label>
+            <input type="text" id="add-contact-name" name="name"/>
+            <label for="add-contact-phone">Phone</label>
+            <input type="text" id="add-contact-phone" name="phone"/>
+            <label for="add-contact-email">Email</label>
+            <input type="text" id="add-contact-email" name="email"/>
+            <label for="add-contact-sprite">Sprite</label>
+            <div id="sprites">
+              <label><input type="radio" name="sprite" value="bulbasaur" checked/><img src="img/bulbasaur.png" alt="Bulbasaur"/></label>
+              <label><input type="radio" name="sprite" value="charmander"/><img src="img/charmander.png" alt="Charmander"/></label>
+              <label><input type="radio" name="sprite" value="squirtle"/><img src="img/squirtle.png" alt="Squirtle"/></label>
+              <label><input type="radio" name="sprite" value="pikachu"/><img src="img/pikachu.png" alt="Pikachu"/></label>
+            </div>
+          </div>
+          <div id="add-contact-buttons">
+            <button class="blob" type="submit">Add Contact</button>
+            <button type="button" class="blob" id="add-contact-clear">Clear</button>
+          </div>
+        </form>
+      </div>
+      <div id="content-help">
+        <div>
+        This site is designed to be accessible via a screenreader. 
+        Navigation and main areas are indicated via ARIA landmarks.
+        Images are captioned with alt text.
+        Every button is accessible via the tab key, while number keys
+        and tabs have AccessKey keyboard shortcuts.
+        These keyboard shortcuts are listed in the following table.
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th id="button">Button</th>
+              <th id="accesskey">AccessKey</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+            <tr>
+              <th colspan="2" class="table-section-header" id="nav">Navigation</th>
+            </tr>
+            <tr>
+              <td headers="nav button">Dialer tab</td>
+              <td headers="nav accesskey">d</td>
+            </tr>
+            <tr>
+              <td headers="nav button">Contact List tab</td>
+              <td headers="nav accesskey">l</td>
+            </tr>
+            <tr>
+              <td headers="nav button">Add Contact tab</td>
+              <td headers="nav accesskey">a</td>
+            </tr>
+            <tr>
+              <td headers="nav button">Helper tab</td>
+              <td headers="nav accesskey">h</td>
+            </tr>
+            
+            <tr>
+              <th colspan="2" class="table-section-header" id="dial">Dialer</th>
+            </tr>
+            <tr>
+              <td headers="dial button">1</td>
+              <td headers="dial accesskey">1</td>
+            </tr>
+            <tr>
+              <td headers="dial button">2</td>
+              <td headers="dial accesskey">2</td>
+            </tr>
+            <tr>
+              <td headers="dial button">3</td>
+              <td headers="dial accesskey">3</td>
+            </tr>
+            <tr>
+              <td headers="dial button">4</td>
+              <td headers="dial accesskey">4</td>
+            </tr>
+            <tr>
+              <td headers="dial button">5</td>
+              <td headers="dial accesskey">5</td>
+            </tr>
+            <tr>
+              <td headers="dial button">6</td>
+              <td headers="dial accesskey">6</td>
+            </tr>
+            <tr>
+              <td headers="dial button">7</td>
+              <td headers="dial accesskey">7</td>
+            </tr>
+            <tr>
+              <td headers="dial button">8</td>
+              <td headers="dial accesskey">8</td>
+            </tr>
+            <tr>
+              <td headers="dial button">9</td>
+              <td headers="dial accesskey">9</td>
+            </tr>
+            <tr>
+              <td headers="dial button">0</td>
+              <td headers="dial accesskey">0</td>
+            </tr>
+            <tr>
+              <td headers="dial button">*</td>
+              <td headers="dial accesskey">*</td>
+            </tr>
+            <tr>
+              <td headers="dial button">#</td>
+              <td headers="dial accesskey">#</td>
+            </tr>
+            <tr>
+              <td headers="dial button">Dial</td>
+              <td headers="dial accesskey">D</td>
+            </tr>
+            <tr>
+              <td headers="dial button">Clear</td>
+              <td headers="dial accesskey">C</td>
+            </tr>                        
+          </tbody>          
+        </table>
+        
+        <div>
+          Pokemon sprites were taken from this <a href="http://endlessparadigm.com/forum/showthread.php?tid=31942">forum thread</a>.
+        </div>          
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="phone.js"></script>
+  </body>
+</html>
