@@ -1,0 +1,118 @@
+:root {
+  --gutter-width: 15px;
+  --blob-height: 60px;
+  --light-color: #ddd;
+  --dark-color: #666;
+  --input-height: 50px;
+  --tab-width: 160px;
+  --total-width: calc(var(--tab-width) * 3);
+  --content-width: calc(var(--total-width) - 2*var(--gutter-width));
+  --num-key-width: calc((var(--content-width) - 2*var(--gutter-width)) / 3);
+  --bottom-key-width: calc((var(--content-width) - 1*var(--gutter-width)) / 2);
+  --label-width: 60px;
+  --field-width: calc(var(--content-width) - var(--gutter-width) - var(--label-width));
+  --font-size: 20px;
+  --tab-font-size: 12px;
+}
+
+* {
+  text-transform: lowercase;
+  font-family: 'Major Mono Display', monospace;
+}
+
+body {
+  margin: 0px;
+}
+
+#content {
+  padding: var(--gutter-width);
+}
+
+#tab-bar {
+  background-color: var(--light-color);
+}
+
+.blob {
+  background-color: var(--light-color);
+  text-align: center;
+  vertical-align: middle;
+  line-height: var(--blob-height);
+  font-size: var(--font-size);
+  border: none;
+}
+.blob:hover {
+  background-color: var(--dark-color);
+  color: white;
+}
+
+.tab {
+  width: var(--tab-width);
+  font-size: var(--tab-font-size);
+}
+.tab.active {
+  background: white;
+  color: black;
+}
+.tab.active:focus {
+  outline: 0;
+}
+.tab.active:hover {
+  background-color: white;
+  color: black;
+}
+
+#content-contact-list > .blob {
+  width: var(--content-width);
+  margin-bottom: var(--gutter-width);
+}
+
+label {
+  height: var(--input-height);
+  line-height: var(--input-height);
+  vertical-align: middle;
+}
+
+input {
+  height: var(--input-height);
+  font-size: var(--font-size);
+}
+
+#num-display {
+  margin: var(--gutter-width) 0px;
+  width: var(--content-width);
+}
+
+#num-blobs {
+  margin: var(--gutter-width) 0px;
+  display: grid;
+  grid-template-columns: var(--num-key-width) var(--num-key-width) var(--num-key-width);
+  grid-template-rows: var(--blob-height) var(--blob-height) var(--blob-height) var(--blob-height);
+  grid-gap: var(--gutter-width);
+}
+
+#num-blobs > .blob {
+  line-height: 50px;
+}
+
+#dial-blobs {
+  margin: var(--gutter-width) 0px;
+  display: grid;
+  grid-template-columns: var(--bottom-key-width) var(--bottom-key-width);
+  grid-template-rows: var(--blob-height);
+  grid-gap: var(--gutter-width);
+}
+
+#add-contact-fields {
+  display: grid;
+  grid-template-columns: var(--label-width) var(--field-width);
+  grid-template-rows: var(--blob-height) var(--blob-height) var(--blob-height);
+  grid-gap: var(--gutter-width);
+  margin-bottom: var(--gutter-width);
+}
+
+#add-contact-buttons {
+  display: grid;
+  grid-template-columns: var(--bottom-key-width) var(--bottom-key-width);
+  grid-template-rows: var(--blob-height);
+  grid-gap: var(--gutter-width);
+}

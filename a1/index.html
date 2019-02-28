@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="phone.css">
+    <title>Your Page Title</title>
+    <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display" rel="stylesheet">
+  </head>
+  <body>
+    <div id="tab-bar">
+      <button class="tab blob" content-id="content-dialer">
+        Dialer
+      </button><button class="tab blob" content-id="content-contact-list">
+        Contact List
+      </button><button class="tab blob" content-id="content-add-contact">
+        Add Contact
+      </button>
+    </div>
+    <div id="content">
+      <div id="content-dialer">
+        <input type="text" id="num-display" disabled/>
+        <div id="num-blobs">
+          <button class="blob" data-key="1">1</button>
+          <button class="blob" data-key="2">2</button>
+          <button class="blob" data-key="3">3</button>
+          <button class="blob" data-key="4">4</button>
+          <button class="blob" data-key="5">5</button>
+          <button class="blob" data-key="6">6</button>
+          <button class="blob" data-key="7">7</button>
+          <button class="blob" data-key="8">8</button>
+          <button class="blob" data-key="9">9</button>
+          <button class="blob" data-key="*">*</button>
+          <button class="blob" data-key="0">0</button>
+          <button class="blob" data-key="#">#</button>
+        </div>
+        <div id="dial-blobs">
+          <button class="blob">Dial</button>
+          <button class="blob">Clear</button>
+        </div>
+      </div>
+      <div id="content-contact-list"></div>
+      <div id="content-add-contact">
+        <form id="add-contact">
+          <div id="add-contact-fields">
+            <label for="add-contact-name">Name</label>
+            <input type="text" id="add-contact-name" name="name"/>
+            <label for="add-contact-phone">Phone</label>
+            <input type="text" id="add-contact-phone" name="phone"/>
+            <label for="add-contact-email">Email</label>
+            <input type="text" id="add-contact-email" name="email"/>
+          </div>
+          <div id="add-contact-buttons">
+            <button class="blob" type="submit">Add Contact</button>
+            <button class="blob" id="add-contact-clear">Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="phone.js"></script>
+  </body>
+</html>
