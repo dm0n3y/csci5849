@@ -7,6 +7,25 @@
 		<link rel="stylesheet" href="calculator.css" type="text/css">
 	</head>
 	<body>
+		<div>
+			<label style="width:100px;">
+				<input
+					type="radio"
+					name="switch-type"
+					value="one-key"
+					onclick="turnOnOneKey()"
+					checked>
+				One Key
+			</label>
+			<label style="width:100px;">
+				<input
+					type="radio"
+					name="switch-type"
+					value="two-key"
+					onclick="turnOnTwoKey()">
+				Two Keys
+			</label>
+		</div>
 		<div id="calculator">
 			<h1>calc U l8r</h1>
 			<div class="calculator_row">

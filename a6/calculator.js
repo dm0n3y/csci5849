@@ -11,6 +11,7 @@ numRows = rows.length;
 numCols = buttons[0].length;
 currentTimer = null;
 loopingRows = false;
+oneKey = true;
 
 function deselectAll() {
 	$("button").removeClass("cursor");
@@ -43,39 +44,79 @@ function selectNextRow() {
 }
 
 function clickSelectedRowItem() {
-	if (selectedColIndex < 0) {
+	if (selectedColIndex < 0 && oneKey) {
 		loopRows();
+	} else if (selectedColIndex < 0 && !oneKey) {
+		loopingRows = true;
+		selectRow(selectedRowIndex);
 	} else {
 		$(buttons[selectedRowIndex][selectedColIndex]).click();
 	}
 }
 
 function clickSelectedRow() {
-	loopRowItems();
+	if (oneKey) {
+		loopRowItems();
+	} else {
+		loopingRows = false;
+		selectButton(selectedRowIndex, 0);
+	}
 }
+
+interval = 500;
 
 function loopRows() {
 	window.clearInterval(currentTimer);
-	currentTimer = window.setInterval(selectNextRow, 400);
+	selectNextRow();
+	currentTimer = window.setInterval(selectNextRow, interval);
 	loopingRows = true;
 }
 
 function loopRowItems() {
 	window.clearInterval(currentTimer);
-	currentTimer = window.setInterval(selectNextRowItem, 400);
+	selectNextRowItem();
+	currentTimer = window.setInterval(selectNextRowItem, interval);
 	loopingRows = false;
+}
+
+function turnOnOneKey() {
+	oneKey = true;
+	loopingRows = true;
+	loopRows();
+}
+
+function turnOnTwoKey() {
+	window.clearInterval(currentTimer);
+	oneKey = false;
+	loopingRows = true;
+	selectRow(0);
 }
 
 // this function responds to user key presses
 // you'll rewrite this to control your interface using some number of keys
 $(document).keypress(function(event) {
-	if (event.key == " " && loopingRows) {
-		clickSelectedRow();
-	} else if (event.key == " " && !loopingRows) {
-		clickSelectedRowItem();
+	if (oneKey) {
+		if (event.key == " " && loopingRows) {
+			clickSelectedRow();
+		} else if (event.key == " " && !loopingRows) {
+			clickSelectedRowItem();
+		}
+	} else {
+		if (event.key == " " && loopingRows) {
+			selectNextRow();			
+		} else if (event.key == " " && !loopingRows) {
+			selectNextRowItem();
+		} else if (event.key == "Enter" && loopingRows) {
+			clickSelectedRow();
+		} else if (event.key == "Enter" && !loopingRows) {
+			clickSelectedRowItem();
+		}
 	}
-})
+});
 
+$(document).ready(function() {
+	turnOnOneKey();
+});
 
 /* calculator stuff below here */
 // for operations, we'll save + - / *
@@ -152,8 +193,3 @@ function evaluateExpression(first,op,second) {
 	$("#number_input").val(output.toString());
 	// deal with state elsewhere
 }
-
-$(document).ready(function() {
-	loopingRows = true;
-	loopRows();
-});
