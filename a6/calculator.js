@@ -1,101 +1,78 @@
-// this gives us the order of the buttons, which we can use to step through the buttons in various directions
-// since we know the layout, + 1 moves to the next item, -1 previous, +4 is one row down, -4 is one row up
-buttonOrder = ["#button7","#button8","#button9","#buttonDivide","#button4","#button5","#button6","#buttonMultiply","#button1","#button2","#button3","#buttonAdd","#button0","#buttonClear","#buttonEquals","#buttonSubtract"];
+rows = ["#row0", "#row1", "#row2", "#row3"];
+buttons = [
+	["#button7","#button8","#button9","#buttonDivide"],
+	["#button4","#button5","#button6","#buttonMultiply"],
+	["#button1","#button2","#button3","#buttonAdd"],
+	["#button0","#buttonClear","#buttonEquals","#buttonSubtract"]
+];
+selectedRowIndex = -1;
+selectedColIndex = -1;
+numRows = rows.length;
+numCols = buttons[0].length;
+currentTimer = null;
+loopingRows = false;
 
-// add the selected class to an item. you can pass this any jquery selector, such as #id or .class
-// calling this will de-select anything currently selected
-function selectItem(name) {
+function deselectAll() {
 	$("button").removeClass("cursor");
-	$(name).addClass("cursor")
 }
 
-// gets the currently selected item, and returns its #id
-// returns null if no item is selected
-// note that if multiple items are selected, this will only return the first
-// but you could rewrite this to return a list of items if you wanted to track multiple selections
-function getSelectedItem() {
-	selected = $(".cursor"); // this returns an array
-	if (selected.length == 0) {
-		return null;
-	}
-	else {
-		return "#" + selected.first().attr('id')
-	} 
+function selectRow(rowIndex) {
+	deselectAll();
+	$(`${rows[rowIndex]} button`).addClass("cursor");
+	selectedRowIndex = rowIndex;
+	selectedColIndex = -1;
 }
 
-// the next four functions move the selected UI control
-// this uses the array buttonOrder to know the order of the buttons. so you could change buttonOrder
-// to change the order that controls are highlighted/
-// if no button is currently selected, such as when the page loads, this will select the first
-// item in buttonOrder (which is the 7 button)
-// selectNext: go to the right, wrapping around to the next row
-// selectPrevious: go to the left, wrapping around to the previous row
-// selectUp: select the item above
-// selectDown: select the item below
+function selectButton(rowIndex, colIndex) {
+	deselectAll();
+	$(buttons[rowIndex][colIndex]).addClass("cursor");
+	selectedRowIndex = rowIndex;
+	selectedColIndex = colIndex;
+}
 
-function selectNext() {
-	selected = getSelectedItem()
-	if (selected == null) {
-		selectItem(buttonOrder[0]);
+function selectNextRowItem() {
+	if (selectedColIndex == numCols - 1) {
+		selectRow(selectedRowIndex);
 	} else {
-		index = buttonOrder.indexOf(selected);
-		index = (index + 1) % buttonOrder.length;
-		selectItem(buttonOrder[index])
+		selectButton(selectedRowIndex, (selectedColIndex + 1) % numCols);
 	}
 }
 
-function selectPrevious() {
-	selected = getSelectedItem()
-	if (selected == null) {
-		selectItem(buttonOrder[0]);
+function selectNextRow() {
+	selectRow((selectedRowIndex + 1) % numRows);
+}
+
+function clickSelectedRowItem() {
+	if (selectedColIndex < 0) {
+		loopRows();
 	} else {
-		index = buttonOrder.indexOf(selected);
-		index = (index - 1);
-		if (index < 0) index = buttonOrder.length + index
-		selectItem(buttonOrder[index])
-	}	
-}
-
-function selectUp() {
-	selected = getSelectedItem()
-	if (selected == null) {
-		selectItem(buttonOrder[0]);
-	} else {
-		index = buttonOrder.indexOf(selected);
-		index = (index - 4);
-		if (index < 0) index = buttonOrder.length + index
-		selectItem(buttonOrder[index])
+		$(buttons[selectedRowIndex][selectedColIndex]).click();
 	}
 }
 
-function selectDown() {
-	selected = getSelectedItem()
-	if (selected == null) {
-		selectItem(buttonOrder[0]);
-	} else {
-		index = buttonOrder.indexOf(selected);
-		index = (index + 4) % buttonOrder.length;
-		selectItem(buttonOrder[index])
-	}
+function clickSelectedRow() {
+	loopRowItems();
 }
 
-// actuate the currently selected item
-// if no item is selected, this does nothing
-// if multiple items are selected, this selects the first
-function clickSelectedItem() {
-	whichButton = getSelectedItem();
-	if (whichButton != null) {
-		$(whichButton).click();
-	}
+function loopRows() {
+	window.clearInterval(currentTimer);
+	currentTimer = window.setInterval(selectNextRow, 400);
+	loopingRows = true;
+}
+
+function loopRowItems() {
+	window.clearInterval(currentTimer);
+	currentTimer = window.setInterval(selectNextRowItem, 400);
+	loopingRows = false;
 }
 
 // this function responds to user key presses
 // you'll rewrite this to control your interface using some number of keys
 $(document).keypress(function(event) {
-	if (event.key == "a") {
-		alert("You pressed the 'a' key!")	
-	} else if (event.key == "b") {
-		alert("You pressed the 'b' key!")
+	if (event.key == " " && loopingRows) {
+		clickSelectedRow();
+	} else if (event.key == " " && !loopingRows) {
+		clickSelectedRowItem();
 	}
 })
 
@@ -175,3 +152,8 @@ function evaluateExpression(first,op,second) {
 	$("#number_input").val(output.toString());
 	// deal with state elsewhere
 }
+
+$(document).ready(function() {
+	loopingRows = true;
+	loopRows();
+});
