@@ -115,7 +115,7 @@ $(document).keypress(function(event) {
 });
 
 $(document).ready(function() {
-	turnOnOneKey();
+	turnOnTwoKey();
 });
 
 /* calculator stuff below here */

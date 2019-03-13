@@ -24,3 +24,15 @@ label {
 	border: 1px solid black;
 	padding: 10px;
 }
+
+th {
+	padding: 0px 10px;
+}
+
+td {
+	padding: 0px 10px;
+}
+
+#average td {
+	border-bottom: 1px solid black;
+}
