@@ -3,17 +3,6 @@ recognition.lang = 'en-US';
 recognition.interimResults = false;
 recognition.maxAlternatives = 1;
 
-/*
-document.body.onclick = function() {
-  recognition.start();
-  console.log("Ready to receive voice commands.")
-}
-*/
-
-recognition.onspeechend = function() {
-  recognition.stop();
-}
-
 recognition.onnomatch = function() {
   console.log("I didn't recognize that command.");
 }
@@ -25,7 +14,6 @@ recognition.onerror = function(event) {
 recognition.onresult = function(event) {
   var command = event.results[0][0].transcript;
   console.log(command);
-  recognition.stop();
 }
 
 var interval;
@@ -38,10 +26,10 @@ $(document).on('keydown', function(e) {
       held = false;
       interval = setInterval(function() {
         if (!held) {
-          handleKeyHeld(e.keyCode);
+          handleEnterHeld(e.keyCode);
           held = true;
         }
-      }, 1000);
+      }, 100);
     }
   }
 }).on('keyup', function(e) {
@@ -50,21 +38,29 @@ $(document).on('keydown', function(e) {
     clearInterval(interval); 
     interval = null;
     if (!held) {
-      handleKeyTapped(e.keyCode);
+      handleEnterTapped(e.keyCode);
     } else {
-      handleKeyReleased(e.keyCode);
+      handleEnterReleased(e.keyCode);
     }
   }
-});
+}).on('keypress', function(e) {
+  if (e.key == " ") {
+    handleSpacePressed();
+  }
+})
 
-function handleKeyHeld(keyCode) {
-  console.log(`key held: ${keyCode}`);
+function handleEnterHeld(keyCode) {
+  recognition.start();
 }
 
-function handleKeyReleased(keyCode) {
-  console.log(`key released: ${keyCode}`);
+function handleEnterReleased(keyCode) {
+  recognition.stop();
 }
 
-function handleKeyTapped(keyCode) {
+function handleEnterTapped(keyCode) {
   console.log(`key tapped: ${keyCode}`);
+}
+
+function handleSpacePressed() {
+  console.log("space");
 }
