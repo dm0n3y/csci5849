@@ -1337,7 +1337,7 @@ $(document).on('keydown', function(e) {
           startRecording();
           held = true;
         }
-      }, 100);
+      }, 50);
     }
   }
 }).on('keyup', function(e) {
