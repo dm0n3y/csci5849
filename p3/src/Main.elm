@@ -152,21 +152,21 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
     (
-        { deck = cards },
-        Cmd.none
+        { deck = [] },
+        generate Shuffled (shuffle cards)
     )
 
 ---- UPDATE ----
 
 
 type Msg
-    = NoOp
+    = Shuffled (List Card)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
-
+    case msg of
+        Shuffled deck -> ({ model | deck = deck }, Cmd.none)
 
 
 ---- VIEW ----
