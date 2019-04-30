@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
+import Task
 import Task.Extra exposing (message)
 
 import Random exposing (Seed, generate)
@@ -151,18 +152,18 @@ type alias Card =
 
 type alias Model =
     {
-        deck : List Card,
-        table : List Card,
-        staged: List Card,
-        lastSetTime: Maybe Time.Posix,
+        deck: List Card,
+        table: List Card,
+        set: List Card,
+        startSetTime: Maybe Time.Posix,
         currentTime: Time.Posix,
-        stageTime: Int
+        setTime: Int
     }
 
 init : ( Model, Cmd Msg )
 init =
     (
-        { deck = [], table = [], staged = [], lastSetTime = Nothing, currentTime = Time.millisToPosix 0, stageTime = 5000 },
+        { deck = [], table = [], set = [], startSetTime = Nothing, currentTime = Time.millisToPosix 0, setTime = 5000 },
         message Shuffle
     )
 
@@ -177,16 +178,35 @@ subscriptions model =
 
 type Msg
     = Tick Time.Posix
+    | StartSetTime Time.Posix
+    | ClearStartSetTime
     | Shuffle
     | Shuffled (List Card)
-    | Stage Card
-    | Unstage Card
+    | StartSet
+    | AddToSet Card
+    | RemoveFromSet Card
 
+remainingTimeHelper startSetTime currentTime setTime =
+    case startSetTime of
+        Nothing -> Nothing
+        Just startTime -> Just (setTime - (Time.posixToMillis currentTime - Time.posixToMillis startTime))
+
+remainingTime : Model -> Maybe Int
+remainingTime { startSetTime, currentTime, setTime } = remainingTimeHelper startSetTime currentTime setTime
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Tick newTime -> ( { model | currentTime = newTime }, Cmd.none )
+        Tick newTime -> 
+            ( 
+                { model | currentTime = newTime },
+                case remainingTimeHelper model.startSetTime newTime model.setTime of
+                    Nothing -> Cmd.none
+                    Just remaining -> if remaining > 0 then Cmd.none else message ClearStartSetTime
+            )
+        StartSet -> ( model, Time.now |> Task.perform StartSetTime )
+        StartSetTime time -> ( { model | startSetTime = Just time }, Cmd.none )
+        ClearStartSetTime -> ( { model | startSetTime = Nothing }, Cmd.none )
         Shuffle -> ( model, generate Shuffled (shuffle cards) )
         Shuffled deck ->
             let
@@ -194,25 +214,24 @@ update msg model =
                 remainingDeck = List.drop 12 deck
             in
             ({ model | table = table, deck = remainingDeck }, Cmd.none)
-        Stage card -> ( { model | staged = card :: model.staged }, Cmd.none )
-        Unstage card ->
+        AddToSet card -> ( { model | set = card :: model.set }, Cmd.none )
+        RemoveFromSet card ->
             (
-                { model | staged = model.staged |> List.filter(\cd -> cd /= card) },
+                { model | set = model.set |> List.filter(\cd -> cd /= card) },
                 Cmd.none
             )
 
 
 ---- VIEW ----
 
-
 view : Model -> Html Msg
-view { deck, table, staged, currentTime } =
+view ({ deck, table, set, startSetTime, currentTime, setTime } as model) =
     let
         cardAttributes cd =
-            if List.member cd staged then
-                [class "card", class "staged", onClick (Unstage cd)]
+            if List.member cd set then
+                [class "card", class "set", onClick (RemoveFromSet cd)]
             else
-                [class "card", onClick (Stage cd)]
+                [class "card", onClick (AddToSet cd)]
 
         tableCards =
             table
@@ -221,9 +240,21 @@ view { deck, table, staged, currentTime } =
                     div (cardAttributes cd)
                         [img [ src (cardImgPath cd) ] []]
             )
+        tableView = div [id "table"] tableCards
+
+        remainingTimeView =
+            div [id "remaining-time"]
+                (
+                    case remainingTime model of
+                        Nothing -> []
+                        Just time -> [text (String.fromInt time)]
+                )
     in
-    div [id "container"]
-        tableCards
+    div [id "container", onClick StartSet]
+        [
+            tableView,
+            remainingTimeView
+        ]
 
 ---- PROGRAM ----
 
