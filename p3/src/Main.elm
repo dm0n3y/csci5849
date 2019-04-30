@@ -4,6 +4,8 @@ import Browser
 import Html exposing (Html, text, div, h1, img)
 import Html.Attributes exposing (src)
 
+import Task.Extra exposing (message)
+
 import Random exposing (Seed, generate)
 import Random.List exposing (shuffle)
 
@@ -154,19 +156,21 @@ init : ( Model, Cmd Msg )
 init =
     (
         { deck = [], table = [] },
-        generate Shuffled (shuffle cards)
+        message Shuffle
     )
 
 ---- UPDATE ----
 
 
 type Msg
-    = Shuffled (List Card)
+    = Shuffle
+    | Shuffled (List Card)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Shuffle -> ( model, generate Shuffled (shuffle cards) )
         Shuffled deck ->
             let
                 table = List.take 12 deck
