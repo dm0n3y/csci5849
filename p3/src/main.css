@@ -9,11 +9,19 @@
   height: inherit;
 }
 
+:root {
+  --card-height: 200px;
+  --card-width: 275px;
+  --gutter: 15px;
+  --total-height: calc(var(--card-height) * 3 + var(--gutter) * 2);
+  --total-width: calc(var(--card-width) * 4 + var(--gutter) * 3);
+}
+
 body {
   font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
   margin: 0;
   text-align: center;
-  color: #293c4b;
+  background-color: #293c4b;
 }
 
 h1 {
@@ -22,18 +30,25 @@ h1 {
 
 #container {
   margin: auto;
-  width: 1000px;
-  height: 600px;
+  width: var(--total-width);
+  height: var(--total-height);
   display: grid;
-  grid-template-rows: auto auto auto;
-  grid-row-gap: 5px;
-  grid-template-columns: auto auto auto auto;
-  grid-column-gap: 5px;
+  grid-template-rows: var(--card-height) var(--card-height) var(--card-height);
+  grid-row-gap: var(--gutter);
+  grid-template-columns: var(--card-width) var(--card-width) var(--card-width) var(--card-width);
+  grid-column-gap: var(--gutter);
 }
 
 .card {
-  border: 2px solid black;
+  box-shadow: inset 0px 0px 0px 2px black;
+  border-radius: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
+  background-color: white;
+}
+
+.card.staged {
+  box-shadow: inset 0px 0px 0px 5px black;
 }

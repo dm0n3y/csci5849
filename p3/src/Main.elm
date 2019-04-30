@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 
 import Task.Extra exposing (message)
 
@@ -154,13 +155,14 @@ type alias Model =
         table : List Card,
         staged: List Card,
         lastSetTime: Maybe Time.Posix,
-        currentTime: Time.Posix
+        currentTime: Time.Posix,
+        stageTime: Int
     }
 
 init : ( Model, Cmd Msg )
 init =
     (
-        { deck = [], table = [], staged = [], lastSetTime = Nothing, currentTime = Time.millisToPosix 0 },
+        { deck = [], table = [], staged = [], lastSetTime = Nothing, currentTime = Time.millisToPosix 0, stageTime = 5000 },
         message Shuffle
     )
 
@@ -177,6 +179,8 @@ type Msg
     = Tick Time.Posix
     | Shuffle
     | Shuffled (List Card)
+    | Stage Card
+    | Unstage Card
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -190,15 +194,33 @@ update msg model =
                 remainingDeck = List.drop 12 deck
             in
             ({ model | table = table, deck = remainingDeck }, Cmd.none)
+        Stage card -> ( { model | staged = card :: model.staged }, Cmd.none )
+        Unstage card ->
+            (
+                { model | staged = model.staged |> List.filter(\cd -> cd /= card) },
+                Cmd.none
+            )
 
 
 ---- VIEW ----
 
 
 view : Model -> Html Msg
-view { deck, table, currentTime } =
+view { deck, table, staged, currentTime } =
     let
-        tableCards = table |> List.map (\cd -> div [class "card"] [img [ src (cardImgPath cd) ] []])
+        cardAttributes cd =
+            if List.member cd staged then
+                [class "card", class "staged", onClick (Unstage cd)]
+            else
+                [class "card", onClick (Stage cd)]
+
+        tableCards =
+            table
+            |> List.map (
+                \cd ->
+                    div (cardAttributes cd)
+                        [img [ src (cardImgPath cd) ] []]
+            )
     in
     div [id "container"]
         tableCards
