@@ -9,6 +9,8 @@ import Task.Extra exposing (message)
 import Random exposing (Seed, generate)
 import Random.List exposing (shuffle)
 
+import Time
+
 
 numberToString : Number -> String
 numberToString n =
@@ -149,27 +151,38 @@ type alias Card =
 type alias Model =
     {
         deck : List Card,
-        table : List Card
+        table : List Card,
+        staged: List Card,
+        lastSetTime: Maybe Time.Posix,
+        currentTime: Time.Posix
     }
 
 init : ( Model, Cmd Msg )
 init =
     (
-        { deck = [], table = [] },
+        { deck = [], table = [], staged = [], lastSetTime = Nothing, currentTime = Time.millisToPosix 0 },
         message Shuffle
     )
+
+---- SUBSCRIPTIONS ----
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Time.every 100 Tick
 
 ---- UPDATE ----
 
 
 type Msg
-    = Shuffle
+    = Tick Time.Posix
+    | Shuffle
     | Shuffled (List Card)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Tick newTime -> ( { model | currentTime = newTime }, Cmd.none )
         Shuffle -> ( model, generate Shuffled (shuffle cards) )
         Shuffled deck ->
             let
@@ -183,7 +196,7 @@ update msg model =
 
 
 view : Model -> Html Msg
-view { deck, table } =
+view { deck, table, currentTime } =
     let
         tableCards = table |> List.map (\cd -> div [class "card"] [img [ src (cardImgPath cd) ] []])
     in
@@ -199,5 +212,5 @@ main =
         { view = view
         , init = \_ -> init
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }
