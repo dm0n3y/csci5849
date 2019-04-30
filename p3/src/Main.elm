@@ -146,13 +146,14 @@ type alias Card =
 
 type alias Model =
     {
-        deck : List Card
+        deck : List Card,
+        table : List Card
     }
 
 init : ( Model, Cmd Msg )
 init =
     (
-        { deck = [] },
+        { deck = [], table = [] },
         generate Shuffled (shuffle cards)
     )
 
@@ -166,20 +167,24 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Shuffled deck -> ({ model | deck = deck }, Cmd.none)
+        Shuffled deck ->
+            let
+                table = List.take 12 deck
+                remainingDeck = List.drop 12 deck
+            in
+            ({ model | table = table, deck = remainingDeck }, Cmd.none)
 
 
 ---- VIEW ----
 
 
 view : Model -> Html Msg
-view { deck } =
+view { deck, table } =
+    let
+        tableCards = table |> List.map (\cd -> img [ src (cardImgPath cd) ] [])
+    in
     div []
-        (
-            case List.head deck of
-                Nothing -> []
-                Just cd -> [img [ src (cardImgPath cd) ] []]
-        )
+        tableCards
 
 ---- PROGRAM ----
 
