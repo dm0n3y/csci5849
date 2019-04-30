@@ -20,7 +20,21 @@ h1 {
   font-size: 30px;
 }
 
-img {
-  margin: 20px 0;
-  max-width: 200px;
+#container {
+  margin: auto;
+  width: 1000px;
+  height: 500px;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  grid-template-columns: auto auto auto auto;
+  border-bottom: 1px solid black;
+  border-right: 1px solid black;
+}
+
+.card {
+  border-top: 1px solid black;
+  border-left: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

@@ -1,8 +1,8 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, text, div, h1, img)
-import Html.Attributes exposing (src)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 
 import Task.Extra exposing (message)
 
@@ -185,9 +185,9 @@ update msg model =
 view : Model -> Html Msg
 view { deck, table } =
     let
-        tableCards = table |> List.map (\cd -> img [ src (cardImgPath cd) ] [])
+        tableCards = table |> List.map (\cd -> div [class "card"] [img [ src (cardImgPath cd) ] []])
     in
-    div []
+    div [id "container"]
         tableCards
 
 ---- PROGRAM ----
