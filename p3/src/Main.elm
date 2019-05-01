@@ -910,17 +910,17 @@ view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
 
                 ( Just _, _ ) ->
                     if isSelectedBy t xPlayer then
-                        [ class "card", class "set", onClick (Select xPlayer t) ]
+                        [ class "card", class "set", onClick (Deselect xPlayer t) ]
 
                     else
-                        [ class "card", onClick (Deselect xPlayer t) ]
+                        [ class "card", onClick (Select xPlayer t) ]
 
                 ( _, Just _ ) ->
                     if isSelectedBy t yPlayer then
-                        [ class "card", class "set", onClick (Select yPlayer t) ]
+                        [ class "card", class "set", onClick (Deselect yPlayer t) ]
 
                     else
-                        [ class "card", onClick (Deselect yPlayer t) ]
+                        [ class "card", onClick (Select yPlayer t) ]
 
         fullTableCardViews table =
             table
