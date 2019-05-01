@@ -1,4 +1,4 @@
-module Main exposing (Card, CheckResult(..), Color(..), Fill(..), Model, Msg(..), Number(..), Player(..), Shape(..), cardImgPath, cardIterator, cardToString, cards, checkSet, colorIterator, colorToString, colorsValid, fillIterator, fillToString, fillsValid, firstCard, firstColor, firstFill, firstNumber, firstShape, init, main, numberIterator, numberToString, numbersValid, remainingTimeHelper, shapeIterator, shapeToString, shapesValid, subscriptions, update, view, xRemainingTime, xSetCards, yRemainingTime, ySetCards)
+module Main exposing (Card, CheckResult(..), Color(..), Deck, Fill(..), GameState(..), Milliseconds, Model, Msg(..), Number(..), PlayState(..), Player(..), PlayerRecord, SelectedTableCards(..), Shape(..), SparseTable, Table, TableCard, addToSelection, cardImgPath, cardIterator, cardToString, cards, checkSelectionForSet, colorIterator, colorToString, colorsValid, contains, decrPoints, fillIterator, fillToString, fillsValid, firstCard, firstColor, firstFill, firstNumber, firstShape, getCurrentTime, getSelectedCards, getSelectionStarted, getTableCard, getTableIndex, incrPoints, init, isSelectedBy, main, mkTableCard, numberIterator, numberToString, numbersValid, putCurrentTime, putSelectedCards, putSelectionStartedTime, remainingSelectionTime, removeFromSelection, shapeIterator, shapeToString, shapesValid, stringOfPlayer, subscriptions, update, updatePlayState, updatePlayer, view)
 
 import Browser
 import Dict exposing (Dict)
@@ -10,6 +10,10 @@ import Random.List exposing (shuffle)
 import Task
 import Task.Extra exposing (message)
 import Time
+
+
+
+---- UTIL ----
 
 
 numberToString : Number -> String
@@ -62,10 +66,6 @@ fillToString f =
 
         Empty ->
             "empty"
-
-
-
----- MODEL ----
 
 
 numberIterator : Maybe Number -> Maybe Number
@@ -207,76 +207,6 @@ cardImgPath card =
     String.concat [ "./img/", cardToString card, ".png" ]
 
 
-type Number
-    = One
-    | Two
-    | Three
-
-
-type Color
-    = Red
-    | Purple
-    | Green
-
-
-type Shape
-    = Oval
-    | Squiggle
-    | Diamond
-
-
-type Fill
-    = Solid
-    | Striped
-    | Empty
-
-
-type alias Card =
-    { number : Number
-    , color : Color
-    , shape : Shape
-    , fill : Fill
-    }
-
-
-type Player
-    = X
-    | Y
-
-
-type alias Model =
-    { deck : List Card
-    , table : Dict Int Card
-    , currentTime : Time.Posix
-    , setTime : Int
-    , xPoints : Int
-    , yPoints : Int
-    , xSet : List Int
-    , ySet : List Int
-    , xStartTime : Maybe Time.Posix
-    , yStartTime : Maybe Time.Posix
-    , gameOver : Bool
-    }
-
-
-init : ( Model, Cmd Msg )
-init =
-    ( { deck = []
-      , table = Dict.fromList []
-      , currentTime = Time.millisToPosix 0
-      , setTime = 5000
-      , xPoints = 0
-      , yPoints = 0
-      , xSet = []
-      , ySet = []
-      , xStartTime = Nothing
-      , yStartTime = Nothing
-      , gameOver = False
-      }
-    , message Shuffle
-    )
-
-
 numbersValid cd1 cd2 cd3 =
     let
         c1 =
@@ -333,30 +263,338 @@ fillsValid cd1 cd2 cd3 =
     (c1 == c2 && c2 == c3 && c3 == c1) || (c1 /= c2 && c2 /= c3 && c3 /= c1)
 
 
-type CheckResult
-    = Valid
-    | Invalid
-    | Incomplete
+contains : TableCard -> SelectedTableCards -> Bool
+contains t selection =
+    case selection of
+        SZero ->
+            False
+
+        SOne t1 ->
+            t == t1
+
+        STwo t1 t2 ->
+            t == t1 || t == t2
+
+        SThree t1 t2 t3 ->
+            t == t1 || t == t2 || t == t3
 
 
-checkSet : List Card -> CheckResult
-checkSet set =
-    case set of
-        [] ->
-            Incomplete
+addToSelection : TableCard -> SelectedTableCards -> SelectedTableCards
+addToSelection t selection =
+    case selection of
+        SZero ->
+            SOne t
 
-        [ _ ] ->
-            Incomplete
+        SOne t1 ->
+            STwo t1 t
 
-        [ _, _ ] ->
-            Incomplete
+        STwo t1 t2 ->
+            SThree t1 t2 t
 
-        c1 :: c2 :: c3 :: _ ->
-            if numbersValid c1 c2 c3 && colorsValid c1 c2 c3 && shapesValid c1 c2 c3 && fillsValid c1 c2 c3 then
-                Valid
+        SThree t1 t2 t3 ->
+            SThree t1 t2 t3
+
+
+removeFromSelection : TableCard -> SelectedTableCards -> SelectedTableCards
+removeFromSelection t selection =
+    case selection of
+        SZero ->
+            SZero
+
+        SOne t1 ->
+            if t == t1 then
+                SZero
 
             else
-                Invalid
+                SOne t1
+
+        STwo t1 t2 ->
+            if t == t1 then
+                SOne t2
+
+            else if t == t2 then
+                SOne t1
+
+            else
+                STwo t1 t2
+
+        SThree t1 t2 t3 ->
+            if t == t1 then
+                STwo t2 t3
+
+            else if t == t2 then
+                STwo t1 t3
+
+            else if t == t3 then
+                STwo t1 t2
+
+            else
+                SThree t1 t2 t3
+
+
+mkTableCard : Int -> Card -> TableCard
+mkTableCard i cd =
+    { tableIndex = i, card = cd }
+
+
+getTableCard : Int -> Table -> TableCard
+getTableCard tableIndex table =
+    case Dict.get tableIndex table of
+        Nothing ->
+            { card = firstCard, tableIndex = tableIndex }
+
+        -- HACK --
+        Just c ->
+            { card = c, tableIndex = tableIndex }
+
+
+getSelectedCards : Player -> SelectedTableCards
+getSelectedCards player =
+    case player of
+        X record ->
+            record.selectedCards
+
+        Y record ->
+            record.selectedCards
+
+
+putSelectedCards : SelectedTableCards -> Player -> Player
+putSelectedCards selectedCards player =
+    case player of
+        X record ->
+            X { record | selectedCards = selectedCards }
+
+        Y record ->
+            Y { record | selectedCards = selectedCards }
+
+
+getSelectionStarted : Player -> Maybe Time.Posix
+getSelectionStarted player =
+    case player of
+        X { selectionStarted } ->
+            selectionStarted
+
+        Y { selectionStarted } ->
+            selectionStarted
+
+
+putSelectionStartedTime : Time.Posix -> Player -> Player
+putSelectionStartedTime time player =
+    case player of
+        X record ->
+            X { record | selectionStarted = Just time }
+
+        Y record ->
+            Y { record | selectionStarted = Just time }
+
+
+isSelectedBy : TableCard -> Player -> Bool
+isSelectedBy t player =
+    case player of
+        X { selectedCards } ->
+            contains t selectedCards
+
+        Y { selectedCards } ->
+            contains t selectedCards
+
+
+remainingSelectionTime : Player -> Time.Posix -> Milliseconds -> Maybe Milliseconds
+remainingSelectionTime player currentTime selectionDuration =
+    let
+        remainingTime : PlayerRecord -> Maybe Milliseconds
+        remainingTime { selectionStarted } =
+            case selectionStarted of
+                Nothing ->
+                    Nothing
+
+                Just selectionStartTime ->
+                    Just <| selectionDuration - (Time.posixToMillis currentTime - Time.posixToMillis selectionStartTime)
+    in
+    case player of
+        X record ->
+            remainingTime record
+
+        Y record ->
+            remainingTime record
+
+
+updatePlayState : PlayState -> Model -> Model
+updatePlayState newPlayState m =
+    { m | playState = newPlayState }
+
+
+updatePlayer : Player -> Model -> Model
+updatePlayer newPlayer m =
+    case newPlayer of
+        X _ ->
+            { m | xPlayer = newPlayer }
+
+        Y _ ->
+            { m | yPlayer = newPlayer }
+
+
+incrPoints : Player -> Player
+incrPoints p =
+    case p of
+        X r ->
+            X { r | points = r.points + 1 }
+
+        Y r ->
+            Y { r | points = r.points + 1 }
+
+
+decrPoints : Player -> Player
+decrPoints p =
+    case p of
+        X r ->
+            X { r | points = r.points - 1 }
+
+        Y r ->
+            Y { r | points = r.points - 1 }
+
+
+getCurrentTime : GameState -> Time.Posix
+getCurrentTime gs =
+    case gs of
+        WithDeck currentTime _ _ ->
+            currentTime
+
+        WithEmptyDeck currentTime _ ->
+            currentTime
+
+
+putCurrentTime : Time.Posix -> GameState -> GameState
+putCurrentTime t gs =
+    case gs of
+        WithDeck currentTime deck table ->
+            WithDeck t deck table
+
+        WithEmptyDeck currentTime table ->
+            WithEmptyDeck t table
+
+
+stringOfPlayer : Player -> String
+stringOfPlayer player =
+    case player of
+        X _ ->
+            "X"
+
+        Y _ ->
+            "Y"
+
+
+getTableIndex : TableCard -> Int
+getTableIndex { tableIndex } =
+    tableIndex
+
+
+
+---- MODEL ----
+
+
+type Number
+    = One
+    | Two
+    | Three
+
+
+type Color
+    = Red
+    | Purple
+    | Green
+
+
+type Shape
+    = Oval
+    | Squiggle
+    | Diamond
+
+
+type Fill
+    = Solid
+    | Striped
+    | Empty
+
+
+type alias Card =
+    { number : Number
+    , color : Color
+    , shape : Shape
+    , fill : Fill
+    }
+
+
+type alias TableCard =
+    { tableIndex : Int
+    , card : Card
+    }
+
+
+type SelectedTableCards
+    = SZero
+    | SOne TableCard
+    | STwo TableCard TableCard
+    | SThree TableCard TableCard TableCard
+
+
+type alias PlayerRecord =
+    { points : Int
+    , selectedCards : SelectedTableCards
+    , selectionStarted : Maybe Time.Posix
+    }
+
+
+type Player
+    = X PlayerRecord
+    | Y PlayerRecord
+
+
+type alias Milliseconds =
+    Int
+
+
+type alias Deck =
+    { nextDraw : ( Card, Card, Card )
+    , rest : List Card
+    }
+
+
+type alias Table =
+    Dict Int Card
+
+
+type alias SparseTable =
+    Dict Int (Maybe Card)
+
+
+type GameState
+    = WithDeck Time.Posix Deck Table
+    | WithEmptyDeck Time.Posix SparseTable
+
+
+type PlayState
+    = BeforeFirstGame
+    | PlayingGame GameState
+    | GameOver
+
+
+type alias Model =
+    { selectionDuration : Milliseconds
+    , playState : PlayState
+    , xPlayer : Player
+    , yPlayer : Player
+    }
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( { selectionDuration = 5000
+      , playState = BeforeFirstGame
+      , xPlayer = X { points = 0, selectedCards = SZero, selectionStarted = Nothing }
+      , yPlayer = Y { points = 0, selectedCards = SZero, selectionStarted = Nothing }
+      }
+    , message StartGame
+    )
 
 
 
@@ -364,8 +602,16 @@ checkSet set =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Time.every 100 Tick
+subscriptions { playState } =
+    case playState of
+        BeforeFirstGame ->
+            Sub.none
+
+        GameOver ->
+            Sub.none
+
+        PlayingGame _ ->
+            Time.every 100 Tick
 
 
 
@@ -373,229 +619,280 @@ subscriptions model =
 
 
 type Msg
-    = Tick Time.Posix
-    | StartSet Player
-    | StartSetTime Player Time.Posix
-    | ClearSet Player
-    | Shuffle
-    | Shuffled (List Card)
-    | AddToSet Player Int
-    | RemoveFromSet Player Int
-    | TakeSet Player
-    | GameOver
+    = StartGame
+    | EndGame
+    | NewDeck (List Card)
+    | Tick Time.Posix
+    | StartSelection Player
+    | SetStartTime Player Time.Posix
+    | Select Player TableCard
+    | Deselect Player TableCard
 
 
-remainingTimeHelper startSetTime currentTime setTime =
-    case startSetTime of
-        Nothing ->
-            Nothing
-
-        Just startTime ->
-            Just (setTime - (Time.posixToMillis currentTime - Time.posixToMillis startTime))
+type CheckResult
+    = Valid TableCard TableCard TableCard
+    | Invalid
+    | Incomplete
 
 
-xRemainingTime : Model -> Maybe Int
-xRemainingTime { xStartTime, currentTime, setTime } =
-    remainingTimeHelper xStartTime currentTime setTime
+checkSelectionForSet : SelectedTableCards -> CheckResult
+checkSelectionForSet selection =
+    case selection of
+        SZero ->
+            Incomplete
 
+        SOne _ ->
+            Incomplete
 
-yRemainingTime : Model -> Maybe Int
-yRemainingTime { yStartTime, currentTime, setTime } =
-    remainingTimeHelper yStartTime currentTime setTime
+        STwo _ _ ->
+            Incomplete
 
+        SThree t1 t2 t3 ->
+            let
+                c1 =
+                    t1.card
 
-xSetCards : Model -> List Card
-xSetCards { xSet, table } =
-    xSet
-        |> List.map
-            (\i ->
-                case Dict.get i table of
-                    Nothing ->
-                        firstCard
+                c2 =
+                    t2.card
 
-                    --- HACK ---
-                    Just cd ->
-                        cd
-            )
+                c3 =
+                    t3.card
+            in
+            if numbersValid c1 c2 c3 && colorsValid c1 c2 c3 && shapesValid c1 c2 c3 && fillsValid c1 c2 c3 then
+                Valid t1 t2 t3
 
-
-ySetCards : Model -> List Card
-ySetCards { ySet, table } =
-    ySet
-        |> List.map
-            (\i ->
-                case Dict.get i table of
-                    Nothing ->
-                        firstCard
-
-                    --- HACK ---
-                    Just cd ->
-                        cd
-            )
+            else
+                Invalid
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        Tick newTime ->
-            ( { model | currentTime = newTime }
-            , case remainingTimeHelper model.xStartTime newTime model.setTime of
-                Just remaining ->
-                    if remaining > 0 then
-                        Cmd.none
-
-                    else
-                        message (ClearSet X)
-
-                Nothing ->
-                    case remainingTimeHelper model.yStartTime newTime model.setTime of
-                        Just remaining ->
-                            if remaining > 0 then
-                                Cmd.none
-
-                            else
-                                message (ClearSet Y)
-
-                        Nothing ->
-                            Cmd.none
-            )
-
-        Shuffle ->
-            ( model, generate Shuffled (shuffle cards) )
-
-        Shuffled deck ->
+update msg ({ playState, xPlayer, yPlayer, selectionDuration } as model) =
+    let
+        select : TableCard -> Player -> GameState -> ( Player, GameState )
+        select t player gs =
             let
-                table =
-                    List.take 12 deck
+                selectedCards =
+                    getSelectedCards player
+
+                newSelectedCards =
+                    addToSelection t selectedCards
+
+                newPlayer =
+                    putSelectedCards newSelectedCards player
+            in
+            case checkSelectionForSet newSelectedCards of
+                Incomplete ->
+                    ( newPlayer, gs )
+
+                Invalid ->
+                    ( newPlayer |> clearSelection |> decrPoints, gs )
+
+                Valid t1 t2 t3 ->
+                    let
+                        newGameState =
+                            removeSetAndDeal gs t1 t2 t3
+                    in
+                    ( newPlayer |> clearSelection |> incrPoints, newGameState )
+
+        deselect : TableCard -> Player -> Player
+        deselect t player =
+            let
+                selectedCards =
+                    getSelectedCards player
+
+                newSelectedCards =
+                    removeFromSelection t selectedCards
+
+                newPlayer =
+                    putSelectedCards newSelectedCards player
+            in
+            newPlayer
+
+        clearSelection : Player -> Player
+        clearSelection p =
+            let
+                clear record =
+                    { record | selectedCards = SZero, selectionStarted = Nothing }
+            in
+            case p of
+                X record ->
+                    X (clear record)
+
+                Y record ->
+                    Y (clear record)
+
+        dealThree : Deck -> ( ( Card, Card, Card ), Maybe Deck )
+        dealThree { nextDraw, rest } =
+            case List.take 3 rest of
+                [] ->
+                    ( nextDraw, Nothing )
+
+                [ _ ] ->
+                    ( nextDraw, Nothing )
+
+                [ _, _ ] ->
+                    ( nextDraw, Nothing )
+
+                c1 :: c2 :: c3 :: _ ->
+                    ( nextDraw, Just { nextDraw = ( c1, c2, c3 ), rest = List.drop 3 rest } )
+
+        removeSetAndDeal : GameState -> TableCard -> TableCard -> TableCard -> GameState
+        removeSetAndDeal gs t1 t2 t3 =
+            let
+                index1 =
+                    getTableIndex t1
+
+                index2 =
+                    getTableIndex t2
+
+                index3 =
+                    getTableIndex t3
+            in
+            case gs of
+                WithEmptyDeck currentTime sparseTable ->
+                    WithEmptyDeck
+                        currentTime
+                        (Dict.union
+                            (Dict.fromList [ ( index1, Nothing ), ( index2, Nothing ), ( index3, Nothing ) ])
+                            sparseTable
+                        )
+
+                WithDeck currentTime deck tbl ->
+                    let
+                        dealtTable : Card -> Card -> Card -> Table
+                        dealtTable c1 c2 c3 =
+                            Dict.union
+                                (Dict.fromList [ ( index1, c1 ), ( index2, c2 ), ( index3, c3 ) ])
+                                tbl
+                    in
+                    case dealThree deck of
+                        ( ( c1, c2, c3 ), Nothing ) ->
+                            WithEmptyDeck currentTime (dealtTable c1 c2 c3 |> Dict.map (\_ c -> Just c))
+
+                        ( ( c1, c2, c3 ), Just newDeck ) ->
+                            WithDeck currentTime newDeck (dealtTable c1 c2 c3)
+
+        handleSelectionOvertime : GameState -> Player -> ( GameState, Player )
+        handleSelectionOvertime gs player =
+            let
+                selectedCards =
+                    getSelectedCards player
+            in
+            case checkSelectionForSet selectedCards of
+                Incomplete ->
+                    ( gs, player |> clearSelection |> decrPoints )
+
+                Invalid ->
+                    ( gs, player |> clearSelection |> decrPoints )
+
+                Valid t1 t2 t3 ->
+                    ( removeSetAndDeal gs t1 t2 t3, player |> clearSelection |> incrPoints )
+    in
+    case msg of
+        StartGame ->
+            ( model, generate NewDeck (shuffle cards) )
+
+        EndGame ->
+            ( { model | playState = GameOver }, Cmd.none )
+
+        NewDeck cds ->
+            let
+                tbl =
+                    List.take 12 cds
                         |> List.indexedMap (\i cd -> ( i, cd ))
                         |> Dict.fromList
 
                 remainingDeck =
-                    List.drop 12 deck
+                    List.drop 12 cds
             in
-            ( { model | table = table, deck = remainingDeck }, Cmd.none )
+            case remainingDeck of
+                [] ->
+                    ( model, message EndGame )
 
-        StartSet p ->
-            ( model, Time.now |> Task.perform (StartSetTime p) )
+                [ _ ] ->
+                    ( model, message EndGame )
 
-        StartSetTime p time ->
-            case p of
-                X ->
-                    ( { model | xStartTime = Just time }, Cmd.none )
+                [ _, _ ] ->
+                    ( model, message EndGame )
 
-                Y ->
-                    ( { model | yStartTime = Just time }, Cmd.none )
-
-        ClearSet p ->
-            case p of
-                X ->
-                    ( { model | xStartTime = Nothing, xSet = [] }, Cmd.none )
-
-                Y ->
-                    ( { model | yStartTime = Nothing, ySet = [] }, Cmd.none )
-
-        AddToSet p i ->
-            case p of
-                X ->
+                c1 :: c2 :: c3 :: rest ->
                     let
-                        newModel =
-                            { model | xSet = i :: model.xSet }
+                        newDeck =
+                            { nextDraw = ( c1, c2, c3 ), rest = rest }
                     in
-                    case checkSet (xSetCards newModel) of
-                        Incomplete ->
-                            ( newModel, Cmd.none )
+                    ( { model | playState = PlayingGame <| WithDeck (Time.millisToPosix 0) newDeck tbl }, Cmd.none )
 
-                        Invalid ->
-                            ( { newModel | xPoints = model.xPoints - 1 }, message (ClearSet X) )
+        Tick newTime ->
+            case playState of
+                BeforeFirstGame ->
+                    ( model, Cmd.none )
 
-                        Valid ->
-                            ( newModel, message (TakeSet X) )
+                GameOver ->
+                    ( model, Cmd.none )
 
-                Y ->
+                PlayingGame gameState ->
                     let
-                        newModel =
-                            { model | ySet = i :: model.ySet }
+                        remainingTime player =
+                            remainingSelectionTime player newTime selectionDuration
+
+                        tickedGameState =
+                            putCurrentTime newTime gameState
+
+                        tickedModel =
+                            model |> updatePlayState (PlayingGame tickedGameState)
+
+                        maybeHandleOvertime remaining player m =
+                            if remaining > 0 then
+                                ( m, Cmd.none )
+
+                            else
+                                let
+                                    ( newGameState, newPlayer ) =
+                                        handleSelectionOvertime gameState player
+                                in
+                                ( m |> updatePlayState (PlayingGame newGameState) |> updatePlayer newPlayer, Cmd.none )
                     in
-                    case checkSet (ySetCards newModel) of
-                        Incomplete ->
-                            ( newModel, Cmd.none )
+                    case ( remainingTime xPlayer, remainingTime yPlayer ) of
+                        ( Nothing, Nothing ) ->
+                            ( tickedModel, Cmd.none )
 
-                        Invalid ->
-                            ( { newModel | yPoints = model.yPoints - 1 }, message (ClearSet Y) )
+                        ( Just remaining, _ ) ->
+                            maybeHandleOvertime remaining xPlayer tickedModel
 
-                        Valid ->
-                            ( newModel, message (TakeSet Y) )
+                        ( _, Just remaining ) ->
+                            maybeHandleOvertime remaining yPlayer tickedModel
 
-        RemoveFromSet p i ->
-            case p of
-                X ->
-                    ( { model | xSet = model.xSet |> List.filter (\cd -> cd /= i) }
-                    , Cmd.none
-                    )
+        StartSelection player ->
+            ( model, Time.now |> Task.perform (SetStartTime player) )
 
-                Y ->
-                    ( { model | ySet = model.ySet |> List.filter (\cd -> cd /= i) }
-                    , Cmd.none
-                    )
+        SetStartTime p time ->
+            let
+                newPlayer =
+                    putSelectionStartedTime time p
+            in
+            ( model |> updatePlayer newPlayer, Cmd.none )
 
-        TakeSet p ->
-            case p of
-                X ->
+        Select p i ->
+            case playState of
+                BeforeFirstGame ->
+                    ( model, Cmd.none )
+
+                GameOver ->
+                    ( model, Cmd.none )
+
+                PlayingGame gameState ->
                     let
-                        newCards =
-                            List.take 3 model.deck
+                        ( newPlayer, newGameState ) =
+                            select i p gameState
                     in
-                    if List.length newCards == 0 then
-                        ( { model | xPoints = model.xPoints + 1 }, message GameOver )
+                    ( model |> updatePlayer newPlayer |> updatePlayState (PlayingGame newGameState), Cmd.none )
 
-                    else
-                        let
-                            newDeck =
-                                List.drop 3 model.deck
-                        in
-                        let
-                            newIndexedCards =
-                                List.map2 Tuple.pair model.xSet newCards |> Dict.fromList
-                        in
-                        let
-                            newTable =
-                                Dict.union newIndexedCards model.table
-                        in
-                        let
-                            newPoints =
-                                model.xPoints + 1
-                        in
-                        ( { model | deck = newDeck, table = newTable, xPoints = newPoints }, message (ClearSet X) )
-
-                Y ->
-                    let
-                        newCards =
-                            List.take 3 model.deck
-                    in
-                    if List.length newCards == 0 then
-                        ( { model | yPoints = model.yPoints + 1 }, message GameOver )
-
-                    else
-                        let
-                            newDeck =
-                                List.drop 3 model.deck
-                        in
-                        let
-                            newIndexedCards =
-                                List.map2 Tuple.pair model.ySet newCards |> Dict.fromList
-                        in
-                        let
-                            newTable =
-                                Dict.union newIndexedCards model.table
-                        in
-                        let
-                            newPoints =
-                                model.yPoints + 1
-                        in
-                        ( { model | deck = newDeck, table = newTable, yPoints = newPoints }, message (ClearSet Y) )
-
-        GameOver ->
-            ( { model | gameOver = True }, Cmd.none )
+        Deselect p i ->
+            let
+                newPlayer =
+                    deselect i p
+            in
+            ( model |> updatePlayer newPlayer, Cmd.none )
 
 
 
@@ -603,81 +900,128 @@ update msg model =
 
 
 view : Model -> Html Msg
-view ({ deck, table, xSet, ySet, xStartTime, yStartTime, currentTime, setTime, gameOver } as model) =
+view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
     let
-        cardAttributes : Int -> Card -> List (Attribute Msg)
-        cardAttributes i cd =
-            case xRemainingTime model of
-                Just time ->
-                    if List.member i xSet then
-                        [ class "card", class "set", onClick (RemoveFromSet X i) ]
+        tableCardAttributes : TableCard -> List (Attribute Msg)
+        tableCardAttributes t =
+            case ( getSelectionStarted xPlayer, getSelectionStarted yPlayer ) of
+                ( Nothing, Nothing ) ->
+                    [ class "card" ]
+
+                ( Just _, _ ) ->
+                    if isSelectedBy t xPlayer then
+                        [ class "card", class "set", onClick (Select xPlayer t) ]
 
                     else
-                        [ class "card", onClick (AddToSet X i) ]
+                        [ class "card", onClick (Deselect xPlayer t) ]
 
-                Nothing ->
-                    case yRemainingTime model of
-                        Just time ->
-                            if List.member i ySet then
-                                [ class "card", class "set", onClick (RemoveFromSet Y i) ]
+                ( _, Just _ ) ->
+                    if isSelectedBy t yPlayer then
+                        [ class "card", class "set", onClick (Select yPlayer t) ]
 
-                            else
-                                [ class "card", onClick (AddToSet Y i) ]
+                    else
+                        [ class "card", onClick (Deselect yPlayer t) ]
 
-                        Nothing ->
-                            [ class "card" ]
-
-        tableCards =
+        fullTableCardViews table =
             table
                 |> Dict.toList
                 |> List.map
                     (\( i, cd ) ->
-                        div (cardAttributes i cd)
+                        div (tableCardAttributes (mkTableCard i cd))
                             [ img [ src (cardImgPath cd) ] [] ]
                     )
 
-        tableView =
-            div [ id "table" ] tableCards
+        sparseTableCardViews sparseTable =
+            sparseTable
+                |> Dict.toList
+                |> List.map
+                    (\( i, card ) ->
+                        div [ class "no-card" ] []
+                    )
 
-        xRemainingTimeView =
+        tableView gameState =
+            div
+                [ id "table" ]
+                (case gameState of
+                    WithDeck _ _ table ->
+                        fullTableCardViews table
+
+                    WithEmptyDeck _ sparseTable ->
+                        sparseTableCardViews sparseTable
+                )
+
+        remainingTime currentTime player =
+            remainingSelectionTime player currentTime selectionDuration
+
+        remainingTimeChildren currentTime player =
+            case remainingTime currentTime player of
+                Nothing ->
+                    []
+
+                Just remaining ->
+                    [ text (String.concat [ stringOfPlayer player, " ", String.fromInt remaining ]) ]
+
+        xRemainingTimeView currentTime =
             div [ id "x-remaining-time" ]
-                (case xRemainingTime model of
-                    Nothing ->
-                        []
+                (remainingTimeChildren currentTime xPlayer)
 
-                    Just time ->
-                        [ text (String.concat [ "X: ", String.fromInt time ]) ]
-                )
-
-        yRemainingTimeView =
+        yRemainingTimeView currentTime =
             div [ id "y-remaining-time" ]
-                (case yRemainingTime model of
-                    Nothing ->
-                        []
+                (remainingTimeChildren currentTime yPlayer)
 
-                    Just time ->
-                        [ text (String.concat [ "Y: ", String.fromInt time ]) ]
-                )
+        dashboardView gameState =
+            let
+                currentTime =
+                    getCurrentTime gameState
+            in
+            div [ id "dashboard" ]
+                [ xRemainingTimeView currentTime, yRemainingTimeView currentTime ]
 
         containerAttributes =
-            case ( gameOver, xStartTime, yStartTime ) of
-                ( True, _, _ ) ->
+            case playState of
+                BeforeFirstGame ->
+                    [ id "container", class "before-first-game" ]
+
+                GameOver ->
                     [ id "container", class "game-over" ]
 
-                ( _, Nothing, Nothing ) ->
-                    [ id "container", onClick (StartSet X) ]
+                PlayingGame gameState ->
+                    let
+                        currentTime =
+                            getCurrentTime gameState
+                    in
+                    case ( remainingTime currentTime xPlayer, remainingTime currentTime yPlayer ) of
+                        ( Nothing, Nothing ) ->
+                            [ id "container", onClick (StartSelection xPlayer) ]
 
-                ( _, _, _ ) ->
-                    [ id "container" ]
+                        ( _, _ ) ->
+                            [ id "container" ]
 
-        containerNodes =
-            if gameOver then
-                [ text "GAME OVER" ]
+        beforeFirstGameView =
+            div [ id "before-first-game-menu" ]
+                [ button [ onClick StartGame ] [ text "Play" ] ]
 
-            else
-                [ tableView, xRemainingTimeView, yRemainingTimeView ]
+        gameOverView =
+            div [ id "game-over-menu" ]
+                [ span [] [ text "Game Over" ]
+
+                -- TODO: add final score --
+                , button [ onClick StartGame ] [ text "Play again" ]
+                ]
+
+        containerChildren =
+            case playState of
+                BeforeFirstGame ->
+                    [ beforeFirstGameView ]
+
+                GameOver ->
+                    [ gameOverView ]
+
+                PlayingGame gameState ->
+                    [ dashboardView gameState, tableView gameState ]
     in
-    div containerAttributes containerNodes
+    div containerAttributes containerChildren
+
 
 
 ---- PROGRAM ----
