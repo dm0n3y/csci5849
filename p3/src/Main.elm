@@ -263,18 +263,18 @@ yRemainingTime : Model -> Maybe Int
 yRemainingTime { yStartTime, currentTime, setTime } = remainingTimeHelper yStartTime currentTime setTime
 
 xSetCards : Model -> List Card
-xSetCards { xSet, table } = 
-    xSet 
-    |> List.map(\i -> 
+xSetCards { xSet, table } =
+    xSet
+    |> List.map(\i ->
         case Dict.get i table of
             Nothing -> firstCard  --- HACK ---
             Just cd -> cd
         )
 
 ySetCards : Model -> List Card
-ySetCards { ySet, table } = 
-    ySet 
-    |> List.map(\i -> 
+ySetCards { ySet, table } =
+    ySet
+    |> List.map(\i ->
         case Dict.get i table of
             Nothing -> firstCard  --- HACK ---
             Just cd -> cd
@@ -283,8 +283,8 @@ ySetCards { ySet, table } =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Tick newTime -> 
-            ( 
+        Tick newTime ->
+            (
                 { model | currentTime = newTime },
                 case remainingTimeHelper model.xStartTime newTime model.setTime of
                     Just remaining -> if remaining > 0 then Cmd.none else message (ClearSet X)
@@ -304,18 +304,18 @@ update msg model =
             in
             ({ model | table = table, deck = remainingDeck }, Cmd.none)
         StartSet p -> ( model, Time.now |> Task.perform (StartSetTime p) )
-        StartSetTime p time -> 
+        StartSetTime p time ->
             case p of
                 X -> ( { model | xStartTime = Just time }, Cmd.none )
-                Y -> ( { model | yStartTime = Just time }, Cmd.none )            
-        ClearSet p -> 
+                Y -> ( { model | yStartTime = Just time }, Cmd.none )
+        ClearSet p ->
             case p of
                 X -> ( { model | xStartTime = Nothing, xSet = [] }, Cmd.none )
                 Y -> ( { model | yStartTime = Nothing, ySet = [] }, Cmd.none )
-        AddToSet p i -> 
+        AddToSet p i ->
             case p of
                 X ->
-                    let 
+                    let
                         newModel = { model | xSet = i :: model.xSet }
                     in
                     case checkSet (xSetCards newModel) of
@@ -323,7 +323,7 @@ update msg model =
                         Invalid -> ( { newModel | xPoints = model.xPoints - 1 }, message (ClearSet X) )
                         Valid -> ( newModel, message (TakeSet X) )
                 Y ->
-                    let 
+                    let
                         newModel = { model | ySet = i :: model.ySet }
                     in
                     case checkSet (ySetCards newModel) of
@@ -379,13 +379,13 @@ view (
     , yStartTime
     , currentTime
     , setTime
-    , gameOver 
+    , gameOver
     } as model) =
     let
         cardAttributes : Int -> Card -> List (Attribute Msg)
         cardAttributes i cd =
             case xRemainingTime model of
-                Just time ->   
+                Just time ->
                     if List.member i xSet then
                         [class "card", class "set", onClick (RemoveFromSet X i)]
                     else
@@ -424,7 +424,7 @@ view (
                         Nothing -> []
                         Just time -> [text (String.concat ["Y: ", String.fromInt time])]
                 )
-            
+
         containerAttributes =
             case (gameOver, xStartTime, yStartTime) of
                 (True, _, _) -> [id "container", class "game-over"]
