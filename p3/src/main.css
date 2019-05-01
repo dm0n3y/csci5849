@@ -24,6 +24,7 @@ html, body, #container {
 
 body {
   font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+  color: white;
   margin: 0;
   background-color: #293c4b;
 }
@@ -51,4 +52,10 @@ body {
 
 .card.set {
   box-shadow: inset 0px 0px 0px 5px black;
+}
+
+#container.game-over {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
