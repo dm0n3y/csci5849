@@ -941,7 +941,7 @@ view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
 
         tableView gameState =
             div
-                [ id "table" ]
+                [ id "table", class "twelve-cards" ]
                 (case gameState of
                     WithDeck _ _ table ->
                         fullTableCardViews table
@@ -975,7 +975,10 @@ view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
                     getCurrentTime gameState
             in
             div [ id "dashboard" ]
-                [ xRemainingTimeView currentTime, yRemainingTimeView currentTime ]
+                [ xRemainingTimeView currentTime
+                , img [ id "logo", src "./img/set-logo.png" ] []
+                , yRemainingTimeView currentTime
+                ]
 
         containerAttributes =
             case playState of

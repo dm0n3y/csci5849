@@ -10,11 +10,18 @@
 }
 
 :root {
-  --card-height: 200px;
-  --card-width: 275px;
+  --total-height: 100%;
+  --total-width: 100%;
   --gutter: 15px;
-  --total-height: calc(var(--card-height) * 3 + var(--gutter) * 2);
-  --total-width: calc(var(--card-width) * 4 + var(--gutter) * 3);
+  --table-margin: var(--gutter);
+  --dashboard-height: 60px;
+  --table-height: calc(var(--total-height) - var(--dashboard-height));
+  --table-width: var(--total-width);
+  --card-height: calc((var(--table-height) - 2 * var(--gutter) - 2 * var(--table-margin)) / 3);
+  --twelve-card-width: calc((var(--table-width) - 3 * var(--gutter) - 2 * var(--table-margin)) / 4);
+  --fifteen-card-width: calc((var(--table-width) - 4 * var(--gutter) - 2 * var(--table-margin)) / 5);
+  --table-background-color: #293c4b;
+  --dashboard-background-color: #b0d5f5;
 }
 
 html, body, #container {
@@ -26,22 +33,22 @@ body {
   font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
   color: white;
   margin: 0;
-  background-color: #293c4b;
+  background-color: var(--table-background-color);
 }
 
-#table {
-  margin: auto;
+#table.twelve-cards {
+  margin: var(--gutter);
   width: var(--total-width);
   height: var(--total-height);
   display: grid;
   grid-template-rows: var(--card-height) var(--card-height) var(--card-height);
   grid-row-gap: var(--gutter);
-  grid-template-columns: var(--card-width) var(--card-width) var(--card-width) var(--card-width);
+  grid-template-columns: var(--twelve-card-width) var(--twelve-card-width) var(--twelve-card-width) var(--twelve-card-width);
   grid-column-gap: var(--gutter);
 }
 
 .card {
-  box-shadow: inset 0px 0px 0px 2px black;
+  /* box-shadow: inset 0px 0px 0px 2px black; */
   border-radius: 10px;
   display: flex;
   justify-content: center;
@@ -51,11 +58,24 @@ body {
 }
 
 .card.set {
-  box-shadow: inset 0px 0px 0px 5px black;
+  box-shadow: inset 0px 0px 0px 5px var(--dashboard-background-color);
 }
 
 #container.game-over {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+#dashboard {
+  width: 100%;
+  height: var(--dashboard-height);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--dashboard-background-color);
+}
+
+#logo {
+  height: calc(var(--dashboard-height) * 3/4);
 }
