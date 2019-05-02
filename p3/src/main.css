@@ -21,7 +21,9 @@
   --twelve-card-width: calc((var(--table-width) - 3 * var(--gutter) - 2 * var(--table-margin)) / 4);
   --fifteen-card-width: calc((var(--table-width) - 4 * var(--gutter) - 2 * var(--table-margin)) / 5);
   --table-background-color: #293c4b;
-  --dashboard-background-color: #b0d5f5;
+  --dashboard-background-color: white;
+  --card-outline-color: #b0d5f5;
+  --card-outline-thickness: 5px;
 }
 
 html, body, #container {
@@ -31,7 +33,6 @@ html, body, #container {
 
 body {
   font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-  color: white;
   margin: 0;
   background-color: var(--table-background-color);
 }
@@ -55,10 +56,15 @@ body {
   align-items: center;
   cursor: pointer;
   background-color: white;
+  padding: var(--card-outline-thickness);
+}
+
+.card-box > img {
+  transform: rotate(90deg);
 }
 
 .card.set {
-  box-shadow: inset 0px 0px 0px 5px var(--dashboard-background-color);
+  box-shadow: inset 0px 0px 0px var(--card-outline-thickness) var(--card-outline-color);
 }
 
 #container.game-over {
@@ -70,12 +76,41 @@ body {
 #dashboard {
   width: 100%;
   height: var(--dashboard-height);
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 200px 100px 200px;
+  justify-content: space-between;
+  justify-items: center;
   align-items: center;
   background-color: var(--dashboard-background-color);
 }
 
+#players {
+  display: inline-grid;
+  grid-gap: 10px;
+  grid-template-columns: 20px 20px;
+}
+
 #logo {
   height: calc(var(--dashboard-height) * 3/4);
+}
+
+#flash-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0,0,0,0.5);;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#flash-view.off {
+  display: none;
+}
+
+#flash-view > img {
+  height: 20%;
 }

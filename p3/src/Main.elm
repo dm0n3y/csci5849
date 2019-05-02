@@ -488,6 +488,13 @@ getTableIndex { tableIndex } =
     tableIndex
 
 
+getPoints : Player -> Int
+getPoints player =
+    case player of
+        X { points } -> points
+        Y { points } -> points
+
+
 
 ---- MODEL ----
 
@@ -928,7 +935,7 @@ view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
                 |> List.map
                     (\( i, cd ) ->
                         div (tableCardAttributes (mkTableCard i cd))
-                            [ img [ src (cardImgPath cd) ] [] ]
+                            [ div [ class "card-box" ] [ img [ src (cardImgPath cd) ] [] ] ]
                     )
 
         sparseTableCardViews sparseTable =
@@ -959,7 +966,7 @@ view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
                     []
 
                 Just remaining ->
-                    [ text (String.concat [ stringOfPlayer player, " ", String.fromInt remaining ]) ]
+                    [ text (String.fromInt remaining) ]
 
         xRemainingTimeView currentTime =
             div [ id "x-remaining-time" ]
@@ -969,15 +976,35 @@ view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
             div [ id "y-remaining-time" ]
                 (remainingTimeChildren currentTime yPlayer)
 
+        logo =
+            img [ id "logo", src "./img/set-logo.png" ] []
+
+        centerPieceView currentTime =
+            div [ id "centerpiece" ]
+                (case (remainingTime currentTime xPlayer, remainingTime currentTime yPlayer) of
+                    (Nothing, Nothing) ->
+                        [ logo ]
+
+                    (Just remaining, _) ->
+                        [ text (String.fromInt (remaining // 1000)) ]
+
+                    (_, Just remaining) ->
+                        [ text (String.fromInt (remaining // 1000)) ]
+                )
+
         dashboardView gameState =
             let
                 currentTime =
                     getCurrentTime gameState
             in
             div [ id "dashboard" ]
-                [ xRemainingTimeView currentTime
-                , img [ id "logo", src "./img/set-logo.png" ] []
-                , yRemainingTimeView currentTime
+                [ div
+                    [ id "x-player" ]
+                    [ text (String.fromInt (getPoints xPlayer)) ]
+                , centerPieceView currentTime
+                , div
+                    [ id "y-player" ]
+                    [ text (String.fromInt (getPoints yPlayer)) ]
                 ]
 
         containerAttributes =
@@ -1012,6 +1039,21 @@ view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
                 , button [ onClick StartGame ] [ text "Play again" ]
                 ]
 
+        flashView on =
+            div [ id "flash-view", class (if on then "on" else "off") ] [ logo ]
+
+        justCalledSet currentTime =
+            let delta = 100 in
+            case ( remainingTime currentTime xPlayer, remainingTime currentTime yPlayer ) of
+                (Nothing, Nothing) ->
+                    False
+
+                (Just remaining, _) ->
+                    selectionDuration - remaining < delta
+
+                (_, Just remaining) ->
+                    selectionDuration - remaining < delta
+
         containerChildren =
             case playState of
                 BeforeFirstGame ->
@@ -1021,7 +1063,9 @@ view ({ selectionDuration, playState, xPlayer, yPlayer } as model) =
                     [ gameOverView ]
 
                 PlayingGame gameState ->
-                    [ dashboardView gameState, tableView gameState ]
+                    let currentTime = getCurrentTime gameState in
+                    [ dashboardView gameState, tableView gameState, flashView (justCalledSet currentTime) ]
+
     in
     div containerAttributes containerChildren
 
